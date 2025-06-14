@@ -8,5 +8,266 @@
     <div class="container mt-5">
         <h1 class="text-center">Welcome to the Parking Management System</h1>
         <p class="text-center">Manage your parking spaces efficiently.</p>
+        {% if user_history %}
+        <hr>
+        <h4 class="mt-4 mb-3">Your Parking History</h4>
+        <div class="table-responsive mb-4">
+            <table class="table table-dark table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Lot</th>
+                        <th>Spot</th>
+                        <th>Vehicle</th>
+                        <th>Entry Time</th>
+                        <th>Exit Time</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in user_history %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ booking.spot_id and booking.spot.parking_lot_id and booking.spot.parking_lot.prime_location if booking.spot and booking.spot.parking_lot else '' }}</td>
+                        <td>{{ booking.spot_id }}</td>
+                        <td>{{ booking.vehicle_number }}<br>{{ booking.vehicle_brand }} {{ booking.vehicle_model }}</td>
+                        <td>{{ booking.entry_time.strftime('%Y-%m-%d %H:%M') if booking.entry_time else '' }}</td>
+                        <td>{{ booking.exit_time.strftime('%Y-%m-%d %H:%M') if booking.exit_time else '-' }}</td>
+                        <td>
+                            {% if booking.exit_time %}
+                                <span class="badge badge-secondary">Released</span>
+                            {% else %}
+                                <span class="badge badge-success">Active</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not booking.exit_time %}
+                            <button type="button" class="btn btn-danger btn-sm release-btn" data-booking-id="{{ booking.id }}">Release</button>
+                            {% else %}
+                                <button class="btn btn-secondary btn-sm" disabled>Released</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        {% if allocated_spot and allocated_lot %}
+        <div class="modal fade show" id="allocatedModal" tabindex="-1" role="dialog" aria-labelledby="allocatedModalLabel" aria-modal="true" style="display:block;background:rgba(0,0,0,0.7);">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content bg-dark text-white">
+              <div class="modal-header">
+                <h5 class="modal-title" id="allocatedModalLabel">Spot Allocated</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" onclick="$('#allocatedModal').modal('hide');window.location.reload();">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body text-center">
+                <h4>Your spot has been allocated!</h4>
+                <p>Lot: <strong>{{ allocated_lot }}</strong></p>
+                <p>Spot ID: <strong>{{ allocated_spot }}</strong></p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal" onclick="$('#allocatedModal').modal('hide');window.location.reload();">OK</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <script>
+        $(document).ready(function(){
+            $('#allocatedModal').modal('show');
+        });
+        </script>
+        {% endif %}
+        <hr>
+        <h3 class="text-center mt-4 mb-3">Available Parking Lots</h3>
+        <div class="table-responsive">
+            <table class="table table-dark table-striped table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Prime Location</th>
+                        <th>Address</th>
+                        <th>Pincode</th>
+                        <th>Price/Hour</th>
+                        <th>Max Spots</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lot in parking_lots %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ lot.prime_location }}</td>
+                        <td>{{ lot.address }}</td>
+                        <td>{{ lot.pincode }}</td>
+                        <td>{{ lot.price_per_hour }}</td>
+                        <td>{{ lot.max_spots }}</td>
+                        <td>
+                            <button type="button" class="btn btn-success btn-sm book-now-button" data-toggle="modal" data-target="#bookModal" data-lot-id="{{ lot.id }}" data-lot-location="{{ lot.prime_location }}">Book Now</button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center">No parking lots available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Booking Modal -->
+        <div class="modal fade" id="bookModal" tabindex="-1" role="dialog" aria-labelledby="bookModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content bg-dark text-white">
+              <form method="POST" action="{{ url_for('book_now') }}">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="bookModalLabel">Book Parking Lot</h5>
+                  <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="modal-lot-id" name="lot_id">
+                    {{ booking_form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ booking_form.vehicle_number.label(class="form-label") }}
+                        {{ booking_form.vehicle_number(class="form-control bg-dark text-white border-secondary") }}
+                    </div>
+                    <div class="form-group">
+                        {{ booking_form.vehicle_brand.label(class="form-label") }}
+                        {{ booking_form.vehicle_brand(class="form-control bg-dark text-white border-secondary") }}
+                    </div>
+                    <div class="form-group">
+                        {{ booking_form.vehicle_model.label(class="form-label") }}
+                        {{ booking_form.vehicle_model(class="form-control bg-dark text-white border-secondary") }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                  {{ booking_form.submit(class="btn btn-success") }}
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Release Confirmation Modal -->
+        <div class="modal fade" id="releaseModal" tabindex="-1" role="dialog" aria-labelledby="releaseModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content bg-dark text-white">
+              <div class="modal-header">
+                <h5 class="modal-title" id="releaseModalLabel">Release Parking Spot</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body" id="release-modal-body">
+                <!-- Populated by JS -->
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="pay-release-btn">Pay & Release</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          let bookingIdToRelease = null;
+          // Attach click handler to release buttons (delegated for dynamic content)
+          document.querySelectorAll('.release-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              bookingIdToRelease = this.getAttribute('data-booking-id');
+              fetch('/release_spot/' + bookingIdToRelease, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+              })
+              .then(response => response.json())
+              .then(data => {
+                if (data.error) {
+                  alert(data.error);
+                  return;
+                }
+                let html = `<p><strong>Entry Time:</strong> ${data.entry_time}</p>` +
+                           `<p><strong>Exit Time:</strong> ${data.exit_time}</p>` +
+                           `<p><strong>Cost per Hour:</strong> ₹${data.price_per_hour}</p>` +
+                           `<p><strong>Total Cost:</strong> <span class='text-warning font-weight-bold'>₹${data.total_cost}</span></p>`;
+                document.getElementById('release-modal-body').innerHTML = html;
+                // Show modal
+                let modal = document.getElementById('releaseModal');
+                if (modal) {
+                  modal.classList.add('show');
+                  modal.style.display = 'block';
+                  modal.setAttribute('aria-modal', 'true');
+                  modal.removeAttribute('aria-hidden');
+                  // Add backdrop
+                  let backdrop = document.createElement('div');
+                  backdrop.className = 'modal-backdrop fade show';
+                  backdrop.id = 'releaseModal-backdrop';
+                  document.body.appendChild(backdrop);
+                }
+              })
+              .catch(() => alert('Error releasing spot.'));
+            });
+          });
+
+          // Pay & Release button
+          document.getElementById('pay-release-btn').addEventListener('click', function() {
+            if (!bookingIdToRelease) return;
+            fetch('/pay_release/' + bookingIdToRelease, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                // Hide modal
+                let modal = document.getElementById('releaseModal');
+                if (modal) {
+                  modal.classList.remove('show');
+                  modal.style.display = 'none';
+                  modal.setAttribute('aria-hidden', 'true');
+                  modal.removeAttribute('aria-modal');
+                  let backdrop = document.getElementById('releaseModal-backdrop');
+                  if (backdrop) backdrop.remove();
+                }
+                window.location.reload();
+              } else {
+                alert(data.error || 'Error releasing spot.');
+              }
+            })
+            .catch(() => alert('Error releasing spot.'));
+          });
+
+          // Modal close buttons
+          document.querySelectorAll('#releaseModal .close, #releaseModal [data-dismiss="modal"]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              let modal = document.getElementById('releaseModal');
+              if (modal) {
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+                modal.setAttribute('aria-hidden', 'true');
+                modal.removeAttribute('aria-modal');
+                let backdrop = document.getElementById('releaseModal-backdrop');
+                if (backdrop) backdrop.remove();
+              }
+            });
+          });
+
+          // Book Now button logic
+          document.querySelectorAll('.book-now-button').forEach(function(button) {
+            button.addEventListener('click', function() {
+              const lotId = this.getAttribute('data-lot-id');
+              const lotLocation = this.getAttribute('data-lot-location');
+              document.getElementById('modal-lot-id').value = lotId;
+              document.getElementById('bookModalLabel').textContent = `Book Parking Lot at ${lotLocation}`;
+            });
+          });
+        });
+        </script>
     </div>
 {% endblock %}

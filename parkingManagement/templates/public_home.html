@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Welcome to Vehicle Parking Management System
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card bg-dark text-white shadow-lg">
+                <div class="card-body">
+                    <h2 class="text-center mb-4">Vehicle Parking Management System</h2>
+                    <p class="lead text-center">Efficiently manage parking lots, spots, and bookings with ease.</p>
+                    <hr class="bg-light">
+                    <h4>About This Project</h4>
+                    <p>
+                        This Vehicle Parking Management System is designed to streamline the process of managing parking lots for administrators and provide a seamless booking experience for users. Key features include:
+                    </p>
+                    <ul>
+                        <li>Admin dashboard to create, edit, and delete parking lots</li>
+                        <li>Real-time view of occupied and available parking spots</li>
+                        <li>Spot details and booking information at a glance</li>
+                        <li>Secure user authentication and registration</li>
+                        <li>Easy-to-use interface for both admins and users</li>
+                        <li>Responsive design for desktop and mobile devices</li>
+                    </ul>
+                    <p>
+                        Whether you are managing a single parking lot or multiple locations, this system helps you keep track of occupancy, optimize space usage, and enhance the parking experience for everyone.
+                    </p>
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('login_page') }}" class="btn btn-primary btn-lg mr-2">Login</a>
+                        <a href="{{ url_for('register_page') }}" class="btn btn-outline-light btn-lg">Register</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

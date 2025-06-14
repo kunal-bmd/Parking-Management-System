@@ -36,3 +36,9 @@ class ParkingLotForm(FlaskForm):
     price_per_hour = FloatField('Price Per Hour', validators=[DataRequired()])
     max_spots = IntegerField('Max Spots', validators=[DataRequired()])
     submit = SubmitField('Create')
+
+class BookingForm(FlaskForm):
+    vehicle_number = StringField('Vehicle Number', validators=[DataRequired(), Length(max=20)])
+    vehicle_brand = StringField('Vehicle Brand', validators=[DataRequired(), Length(max=30)])
+    vehicle_model = StringField('Vehicle Model', validators=[DataRequired(), Length(max=30)])
+    submit = SubmitField('Book')

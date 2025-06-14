@@ -37,9 +37,11 @@
                                 <div class="d-flex justify-content-start mb-1">
                             {% endif %}
                             {% set color = '#dc3545' if spot.status == 'occupied' else '#28a745' %}
-                            <button class="btn m-1 border border-light"
-                                    style="width:50px;height:40px;background-color:green;color:white;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,0.2);"
-                                    disabled>
+                            <button class="btn m-1 border border-light spot-info-btn"
+                                    style="width:50px;height:40px;color:white;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,0.2);background-color:{{ color }}""
+                                    data-spot-id="{{ spot.id }}" data-lot-id="{{ lot_data.lot.id }}" data-status="{{ spot.status }}"
+                                    {% if spot.status == "occupied" %}data-toggle="modal" data-target="#spotInfoModal"{% endif %}
+                                    >
                                 {{ loop.index }}
                             </button>
                             {% if loop.last %}</div>{% endif %}
@@ -130,21 +132,72 @@
         </div>
       </div>
     </div>
+
+    <!-- Spot Info Modal -->
+    <div class="modal fade" id="spotInfoModal" tabindex="-1" role="dialog" aria-labelledby="spotInfoModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content bg-dark text-white">
+          <div class="modal-header">
+            <h5 class="modal-title" id="spotInfoModalLabel">Occupied Spot Details</h5>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" id="spot-info-body">
+            <!-- Populated by JS -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
 </div>
 
 <script>
-// Prefill edit modal with lot data
-$(document).ready(function() {
-  $('#editLotModal').on('show.bs.modal', function (event) {
-    var button = $(event.relatedTarget);
-    var lotId = button.data('lot-id');
-    var price = button.data('price');
-    var maxSpots = button.data('max-spots');
-    var modal = $(this);
-    modal.find('#edit-lot-id').val(lotId);
-    modal.find('#edit-price').val(price);
-    modal.find('#edit-max-spots').val(maxSpots);
-  });
+const editButtons = document.querySelectorAll('[data-toggle="modal"][data-target="#editLotModal"]');
+editButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        const lotId = this.getAttribute('data-lot-id');
+        const price = this.getAttribute('data-price');
+        const maxSpots = this.getAttribute('data-max-spots');
+
+        const modal = document.getElementById('editLotModal');
+        modal.querySelector('#edit-lot-id').value = lotId;
+        modal.querySelector('#edit-price').value = price;
+        modal.querySelector('#edit-max-spots').value = maxSpots;
+    });
+});
+
+document.querySelectorAll('.spot-info-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        if (this.dataset.status !== 'occupied') return;
+        const spotId = this.dataset.spotId;
+        fetch(`/admin/spot_info/${spotId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('spot-info-body').innerHTML = `<div class='text-danger'>${data.error}</div>`;
+                } else {
+                    document.getElementById('spot-info-body').innerHTML = `
+                        <p><strong>Lot Location:</strong> ${data.lot.prime_location}</p>
+                        <p><strong>Address:</strong> ${data.lot.address}</p>
+                        <p><strong>Pincode:</strong> ${data.lot.pincode}</p>
+                        <p><strong>Price per Hour:</strong> ₹${data.lot.price_per_hour}</p>
+                        <p><strong>Max Spots:</strong> ${data.lot.max_spots}</p>
+                        <p><strong>Spot ID:</strong> ${data.spot.id}</p>
+                        <p><strong>Status:</strong> ${data.spot.status}</p>
+                        <p><strong>Current Booking:</strong></p>
+                        <ul>
+                          <li><strong>User:</strong> ${data.booking.user_name} (${data.booking.user_email})</li>
+                          <li><strong>Vehicle:</strong> ${data.booking.vehicle_number} (${data.booking.vehicle_brand} ${data.booking.vehicle_model})</li>
+                          <li><strong>Entry Time:</strong> ${data.booking.entry_time}</li>
+                        </ul>
+                    `;
+                }
+            });
+    });
 });
 </script>
 {% endblock %}
