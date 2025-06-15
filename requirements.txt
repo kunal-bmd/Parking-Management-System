@@ -8,3 +8,6 @@ flask_dotenv
 python-dotenv
 email_validator
 flask_migrate
+matplotlib
+sqlalchemy
+alembic

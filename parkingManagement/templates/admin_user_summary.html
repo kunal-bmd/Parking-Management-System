@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Admin User Summary
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">User Summary Dashboard</h2>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-info text-white shadow">
+                <div class="card-body text-center">
+                    <h5>Total Users</h5>
+                    <h2>{{ total_users }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white shadow">
+                <div class="card-body text-center">
+                    <h5>Active Bookings</h5>
+                    <h2>{{ active_bookings }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-white shadow">
+                <div class="card-body text-center">
+                    <h5>Registered Vehicles</h5>
+                    <h2>{{ total_vehicles }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-danger text-white shadow mx-auto" style="max-width: 400px;">
+                <div class="card-body text-center">
+                    <h5>Total Revenue</h5> 
+                    <h2>₹{{ total_revenue }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mb-4 justify-content-center">
+        <div class="col-md-6 mb-4">
+            <div class="card bg-dark text-white shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Revenue per Lot</h5>
+                    <img src="{{ url_for('revenue_per_lot_chart') }}" class="img-fluid" alt="Revenue per Lot">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card bg-dark text-white shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Bookings per User</h5>
+                    <img src="{{ url_for('bookings_bar_chart') }}" class="img-fluid" alt="Bookings per User Bar Chart">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card bg-secondary text-white shadow">
+                <div class="card-body">
+                    <h5 class="card-title">All Users</h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Type</th>
+                                    <th>Vehicles</th>
+                                    <th>Total Bookings</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ user.name }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.type }}</td>
+                                    <td>{{ user.vehicle_count }}</td>
+                                    <td>{{ user.booking_count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

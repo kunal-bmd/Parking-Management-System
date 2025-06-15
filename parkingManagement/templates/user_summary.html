@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    User Summary
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Your Parking Summary</h2>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-info text-white shadow">
+                <div class="card-body text-center">
+                    <h5>Total Bookings</h5>
+                    <h2>{{ total_bookings }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white shadow">
+                <div class="card-body text-center">
+                    <h5>Active Bookings</h5>
+                    <h2>{{ active_bookings }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-white shadow">
+                <div class="card-body text-center">
+                    <h5>Total Spent (₹)</h5>
+                    <h2>{{ total_spent }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card bg-dark text-white shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Bookings Over Time</h5>
+                    <img src="{{ url_for('user_bookings_over_time_chart') }}" class="img-fluid" alt="Bookings Over Time">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card bg-dark text-white shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Spending Over Time</h5>
+                    <img src="{{ url_for('user_spending_over_time_chart') }}" class="img-fluid" alt="Spending Over Time">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card bg-secondary text-white shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Your Bookings</h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Lot</th>
+                                    <th>Spot</th>
+                                    <th>Vehicle</th>
+                                    <th>Entry Time</th>
+                                    <th>Exit Time</th>
+                                    <th>Cost (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in bookings %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ booking.lot_name }}</td>
+                                    <td>{{ booking.spot_id }}</td>
+                                    <td>{{ booking.vehicle_number }}<br>{{ booking.vehicle_brand }} {{ booking.vehicle_model }}</td>
+                                    <td>{{ booking.entry_time }}</td>
+                                    <td>{{ booking.exit_time or '-' }}</td>
+                                    <td>{{ booking.cost }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
