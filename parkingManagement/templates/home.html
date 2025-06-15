@@ -93,6 +93,7 @@
                         <th>Pincode</th>
                         <th>Price/Hour</th>
                         <th>Max Spots</th>
+                        <th>Available Spots</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -105,8 +106,10 @@
                         <td>{{ lot.pincode }}</td>
                         <td>{{ lot.price_per_hour }}</td>
                         <td>{{ lot.max_spots }}</td>
+                        <td>{{ lot.max_spots - (lot.occupied_spots if lot.occupied_spots is defined else 0) }}</td>
                         <td>
-                            <button type="button" class="btn btn-success btn-sm book-now-button" data-toggle="modal" data-target="#bookModal" data-lot-id="{{ lot.id }}" data-lot-location="{{ lot.prime_location }}">Book Now</button>
+                            {% set available_spots = lot.max_spots - (lot.occupied_spots if lot.occupied_spots is defined else 0) %}
+                            <button type="button" class="btn btn-sm book-now-button {% if available_spots == 0 %}btn-danger disabled{% else %}btn-success{% endif %}" data-toggle="modal" data-target="#bookModal" data-lot-id="{{ lot.id }}" data-lot-location="{{ lot.prime_location }}" {% if available_spots == 0 %}disabled{% endif %}>Book Now</button>
                         </td>
                     </tr>
                     {% else %}
@@ -194,6 +197,7 @@
                 }
                 let html = `<p><strong>Entry Time:</strong> ${data.entry_time}</p>` +
                            `<p><strong>Exit Time:</strong> ${data.exit_time}</p>` +
+                               `<p><strong>Total Time:</strong> <span class='text-info font-weight-bold'>${data.total_time}</span></p>` +
                            `<p><strong>Cost per Hour:</strong> ₹${data.price_per_hour}</p>` +
                            `<p><strong>Total Cost:</strong> <span class='text-warning font-weight-bold'>₹${data.total_cost}</span></p>`;
                 document.getElementById('release-modal-body').innerHTML = html;

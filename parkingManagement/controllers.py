@@ -25,13 +25,21 @@ def home_page():
     allocated_spot = session.pop('allocated_spot', None)
     allocated_lot = session.pop('allocated_lot', None)
 
+    # Prepare parking lot data with occupied spots count
+    lots_with_occupied = []
+    for lot in parking_lots:
+        occupied_spots = ParkingSpot.query.filter_by(parking_lot_id=lot.id, status='occupied').count()
+        lot_dict = lot.__dict__.copy()
+        lot_dict['occupied_spots'] = occupied_spots
+        lots_with_occupied.append(lot_dict)
+
     if current_user.is_authenticated:
         user_history = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.entry_time.desc()).all()
 
     return render_template(
         'home.html',
         active_page='home',
-        parking_lots=parking_lots,
+        parking_lots=lots_with_occupied,
         booking_form=booking_form,
         user_history=user_history,
         allocated_spot=allocated_spot,
@@ -286,15 +294,21 @@ def release_spot(booking_id):
     entry_time = booking.entry_time
     lot = ParkingLot.query.get(ParkingSpot.query.get(booking.spot_id).parking_lot_id)
     price_per_hour = lot.price_per_hour if lot else 0
-    duration_hours = max(1, int((exit_time - entry_time).total_seconds() // 3600))
+    duration_seconds = (exit_time - entry_time).total_seconds()
+    duration_hours = max(1, int(duration_seconds // 3600))
     total_cost = price_per_hour * duration_hours
+    # Format total time as H hours M minutes
+    hours = int(duration_seconds // 3600)
+    minutes = int((duration_seconds % 3600) // 60)
+    total_time_str = f"{hours} hours {minutes} minutes" if hours else f"{minutes} minutes"
 
     # Return details for confirmation popup
     return jsonify({
         'entry_time': entry_time.strftime('%Y-%m-%d %H:%M'),
         'exit_time': exit_time.strftime('%Y-%m-%d %H:%M'),
         'price_per_hour': price_per_hour,
-        'total_cost': total_cost
+        'total_cost': total_cost,
+        'total_time': total_time_str
     })
 
 
@@ -428,7 +442,7 @@ def bookings_bar_chart():
         spine.set_color('white')
     plt.tight_layout()
     buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight', transparent=True)
+    plt.savefig(buf, format='png', bbox_inches='tight')
     plt.close(fig)
     buf.seek(0)
     return make_response(buf.read(), 200, {'Content-Type': 'image/png'})
@@ -456,7 +470,7 @@ def revenue_per_lot_chart():
         spine.set_color('white')
     plt.tight_layout()
     buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight', transparent=True)
+    plt.savefig(buf, format='png', bbox_inches='tight')
     plt.close(fig)
     buf.seek(0)
     return make_response(buf.read(), 200, {'Content-Type': 'image/png'})
@@ -520,7 +534,7 @@ def user_bookings_over_time_chart():
         spine.set_color('white')
     plt.tight_layout()
     buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight', transparent=True)
+    plt.savefig(buf, format='png', bbox_inches='tight')
     plt.close(fig)
     buf.seek(0)
     return make_response(buf.read(), 200, {'Content-Type': 'image/png'})
@@ -552,7 +566,7 @@ def user_spending_over_time_chart():
         spine.set_color('white')
     plt.tight_layout()
     buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight', transparent=True)
+    plt.savefig(buf, format='png', bbox_inches='tight')
     plt.close(fig)
     buf.seek(0)
     return make_response(buf.read(), 200, {'Content-Type': 'image/png'})
